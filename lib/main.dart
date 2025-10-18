@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'blocs/theme/theme_bloc.dart';
@@ -8,6 +10,8 @@ import 'screens/todo_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  Intl.defaultLocale = 'ja_JP';
+  await initializeDateFormatting('ja_JP');
   final prefs = SharedPreferencesAsync();
   final savedTheme = await prefs.getString(ThemeBloc.storageKey);
   final initialTheme = ThemeBloc.themeModeFromString(savedTheme);
