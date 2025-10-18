@@ -36,14 +36,17 @@ class TodoApiService {
   Future<Todo> createTodo({required String title, String? description}) async {
     final uri = Uri.parse(_base + _path);
     late final http.Response response;
+    final body = <String, dynamic>{
+      'title': title,
+    };
+    if (description != null) {
+      body['description'] = description;
+    }
     try {
       response = await _client.post(
         uri,
         headers: _headers,
-        body: json.encode({
-          'title': title,
-          'description': ?description,
-        }),
+        body: json.encode(body),
       );
     } on Exception catch (e, st) {
       throw Exception('Failed to api connection: $e\n$st');
@@ -60,13 +63,13 @@ class TodoApiService {
   }
 
   Future<Todo> getTodoById(int id) async {
-    final uri = Uri.parse(_base + _path);
+    final uri = Uri.parse('$_base$_path/$id');
 
     late final http.Response response;
     try {
       response = await _client.get(uri, headers: _headers);
     } on Exception catch (e, st) {
-      throw Exception('Failed to get: ${response.statusCode}');
+      throw Exception('Failed to get: $e\n$st');
     }
 
     if (response.statusCode != 200) {
@@ -84,18 +87,8 @@ class TodoApiService {
     String? description,
     bool? completed,
   }) async {
-    final body = <String, dynamic>{};
-    if (title != null) {
-      body['title'] = title;
-    }
-    if (description != null) {
-      body['description'] = description;
-    }
-    if (completed != null) {
-      body['completed'] = completed;
-    }
-
-    final uri = Uri.parse(_base + _path);
+    final body = _genUpdateApiBody(title, description, completed);
+    final uri = Uri.parse('$_base$_path/$id');
     late final http.Response response;
     try {
       response = await _client.put(
@@ -116,8 +109,26 @@ class TodoApiService {
     return todoResponse.data;
   }
 
+  Map<String, dynamic> _genUpdateApiBody(
+    String? title,
+    String? description,
+    bool? completed,
+  ) {
+    final body = <String, dynamic>{};
+    if (title != null) {
+      body['title'] = title;
+    }
+    if (description != null) {
+      body['description'] = description;
+    }
+    if (completed != null) {
+      body['completed'] = completed;
+    }
+    return body;
+  }
+
   Future<void> deleteTodo(int id) async {
-    final uri = Uri.parse(_base + _path);
+    final uri = Uri.parse('$_base$_path/$id');
     late final http.Response response;
 
     try {

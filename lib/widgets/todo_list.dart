@@ -12,12 +12,18 @@ class TodoList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
+    return ListView.separated(
       itemCount: todos.length,
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.fromLTRB(24, 0, 24, 140),
+      physics: const BouncingScrollPhysics(
+        parent: AlwaysScrollableScrollPhysics(),
+      ),
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      separatorBuilder: (context, _) => const SizedBox(height: 20),
       itemBuilder: (context, index) {
         final todo = todos[index];
         return TodoItem(
+          key: ValueKey(todo.id),
           todo: todo,
           onToggle: () {
             context.read<TodoBloc>().add(TodoToggled(id: todo.id));
@@ -37,23 +43,36 @@ class TodoList extends StatelessWidget {
     showDialog<void>(
       context: context,
       builder: (BuildContext dialogContext) {
+        final theme = Theme.of(context);
         return AlertDialog(
-          title: const Text('TODO削除'),
-          content: Text('「${todo.title}」を削除しますか？'),
+          backgroundColor: theme.colorScheme.surface,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
+          title: Text(
+            'TODO削除',
+            style: theme.textTheme.titleLarge,
+          ),
+          content: Text(
+            '「${todo.title}」を削除しますか？',
+            style: theme.textTheme.bodyMedium,
+          ),
+          actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
           actions: [
-            TextButton(
+            OutlinedButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
               child: const Text('キャンセル'),
             ),
-            TextButton(
+            FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: theme.colorScheme.error,
+                foregroundColor: theme.colorScheme.onError,
+              ),
               onPressed: () {
                 Navigator.of(dialogContext).pop();
                 context.read<TodoBloc>().add(TodoDeleted(id: todo.id));
               },
-              child: Text(
-                '削除',
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
-              ),
+              child: const Text('削除'),
             ),
           ],
         );
@@ -70,8 +89,16 @@ class TodoList extends StatelessWidget {
     showDialog<void>(
       context: context,
       builder: (BuildContext dialogContext) {
+        final theme = Theme.of(context);
         return AlertDialog(
-          title: const Text('TODO編集'),
+          backgroundColor: theme.colorScheme.surface,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
+          title: Text(
+            'TODO編集',
+            style: theme.textTheme.titleLarge,
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -79,7 +106,7 @@ class TodoList extends StatelessWidget {
                 controller: titleController,
                 decoration: const InputDecoration(
                   labelText: 'タイトル',
-                  border: OutlineInputBorder(),
+                  hintText: 'TODOのタイトルを入力',
                 ),
               ),
               const SizedBox(height: 16),
@@ -87,28 +114,31 @@ class TodoList extends StatelessWidget {
                 controller: descriptionController,
                 decoration: const InputDecoration(
                   labelText: '説明（任意）',
-                  border: OutlineInputBorder(),
+                  hintText: 'TODOの詳細説明',
                 ),
                 maxLines: 3,
               ),
             ],
           ),
+          actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
           actions: [
-            TextButton(
+            OutlinedButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
               child: const Text('キャンセル'),
             ),
-            ElevatedButton(
+            FilledButton(
               onPressed: () {
-                if (titleController.text.trim().isNotEmpty) {
+                final trimmedTitle = titleController.text.trim();
+                final trimmedDescription = descriptionController.text.trim();
+                if (trimmedTitle.isNotEmpty) {
                   Navigator.of(dialogContext).pop();
                   context.read<TodoBloc>().add(
                     TodoUpdated(
                       id: todo.id,
-                      title: titleController.text.trim(),
-                      description: descriptionController.text.trim().isEmpty
+                      title: trimmedTitle,
+                      description: trimmedDescription.isEmpty
                           ? null
-                          : descriptionController.text.trim(),
+                          : trimmedDescription,
                     ),
                   );
                 }

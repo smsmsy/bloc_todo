@@ -8,11 +8,18 @@
 import 'package:bloc_todo/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
 
 void main() {
+  setUpAll(() async {
+    Intl.defaultLocale = 'ja_JP';
+    await initializeDateFormatting('ja_JP');
+  });
+
   setUp(() {
     SharedPreferencesAsyncPlatform.instance =
         InMemorySharedPreferencesAsync.empty();
@@ -34,12 +41,12 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.text('TODO アプリ'), findsOneWidget);
+    expect(find.text('今日のタスク'), findsOneWidget);
     var materialApp = tester.widget<MaterialApp>(find.byType(MaterialApp));
     expect(materialApp.themeMode, ThemeMode.light);
 
     // Toggle theme.
-    await tester.tap(find.byIcon(Icons.brightness_6));
+    await tester.tap(find.byIcon(Icons.wb_sunny));
     await tester.pumpAndSettle();
 
     materialApp = tester.widget<MaterialApp>(find.byType(MaterialApp));
